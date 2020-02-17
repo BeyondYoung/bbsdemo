@@ -3,13 +3,18 @@ package com.taibin.bbsdemo.controller;
 import com.taibin.bbsdemo.Provider.GithubProvider;
 import com.taibin.bbsdemo.dto.AccessTokenDTO;
 import com.taibin.bbsdemo.dto.GithubUser;
+import com.taibin.bbsdemo.mapper.UserMaper;
+import com.taibin.bbsdemo.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.Date;
+import java.util.UUID;
 
 /**
  * @author: hi@yangbin.cc
@@ -32,10 +37,13 @@ public class AothController {
     @Value("${github.redirect_uri}")
     private  String redirecturi;
 
+    @Autowired
+    private UserMaper userMaper;
+
     @GetMapping("/callback")
     public String callback(@RequestParam(name = "code") String code,
-                           @RequestParam(name = "state") String state
-                            ) throws IOException {
+                           @RequestParam(name = "state") String state,
+                            HttpServletRequest request) throws IOException {
         AccessTokenDTO accessTokenDTO=new AccessTokenDTO();
         accessTokenDTO.setClient_id(clientid);
         accessTokenDTO.setClient_secret(clientsecret);
@@ -43,9 +51,23 @@ public class AothController {
         accessTokenDTO.setRedirect_uri(redirecturi);
         accessTokenDTO.setState(state);
         String token= githubProvider.getAccessToken(accessTokenDTO);
-        GithubUser user=githubProvider.getuser(token);
-        System.out.println(user.getName());
-        return  "index";
+        GithubUser githubUser=githubProvider.getuser(token);
+        if (githubUser!=null)
+        {
+            User user=new User();
+            user.setToken(UUID.randomUUID().toString());
+            user.setAccount_id(String.valueOf(githubUser.getId()));
+            user.setName(githubUser.getName());
+            user.setCreate_date(System.currentTimeMillis());
+            user.setModify_date(user.getCreate_date());
+            userMaper.insertuser(user);
+            request.getSession().setAttribute("user",githubUser);
+            return "redirect:/";
+        }
+        else
+        {
+            return "redirect:/";
+        }
     }
 }
 
