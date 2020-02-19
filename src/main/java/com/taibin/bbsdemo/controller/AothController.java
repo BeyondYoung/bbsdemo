@@ -11,7 +11,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
 import java.util.UUID;
@@ -43,7 +45,7 @@ public class AothController {
     @GetMapping("/callback")
     public String callback(@RequestParam(name = "code") String code,
                            @RequestParam(name = "state") String state,
-                            HttpServletRequest request) throws IOException {
+                            HttpServletResponse response) throws IOException {
         AccessTokenDTO accessTokenDTO=new AccessTokenDTO();
         accessTokenDTO.setClient_id(clientid);
         accessTokenDTO.setClient_secret(clientsecret);
@@ -56,12 +58,16 @@ public class AothController {
         {
             User user=new User();
             user.setToken(UUID.randomUUID().toString());
-            user.setAccount_id(String.valueOf(githubUser.getId()));
+            user.setAccountId(String.valueOf(githubUser.getId()));
             user.setName(githubUser.getName());
-            user.setCreate_date(System.currentTimeMillis());
-            user.setModify_date(user.getCreate_date());
+            user.setCreateDate(System.currentTimeMillis());
+            user.setModifyDate(user.getCreateDate());
             userMaper.insertuser(user);
-            request.getSession().setAttribute("user",githubUser);
+
+            //login success add  and cookie
+          //  request.getSession().setAttribute("user",githubUser);
+            response.addCookie(new Cookie("token",user.getToken()));
+
             return "redirect:/";
         }
         else
