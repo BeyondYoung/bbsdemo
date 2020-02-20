@@ -70,7 +70,7 @@ public class AothController {
 
             return "redirect:/";
         }
-        else
+        else 
         {
             return "redirect:/";
         }

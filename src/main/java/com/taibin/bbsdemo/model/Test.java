@@ -4,6 +4,7 @@ package com.taibin.bbsdemo.model;
  * @author: hi@yangbin.cc
  * @date 2020/2/19 15:41
  */
+
 public class Test {
     private int id;
     private String title;
